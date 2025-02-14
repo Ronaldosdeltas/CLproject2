@@ -1,44 +1,46 @@
 package com.api.CLproject2.service;
 
+import com.api.CLproject2.repository.CameraConnectionManager;
 import de.onvif.soap.OnvifDevice;
-import org.me.javawsdiscovery.DeviceDiscovery;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-
-
 import java.net.ConnectException;
-import java.util.Collection;
-import java.util.List;
 
-@Slf4j
 @Service
 public class OnvifCameraService {
-    private OnvifDevice onvifDevice;
 
-    public void connectToCamera(String ip, String user, String password) {
-        try {
-            onvifDevice = new OnvifDevice(ip, user, password);
-            log.info("Connected to camera: " + ip);
+    private final CameraConnectionManager connectionManager;
 
+    public OnvifCameraService (CameraConnectionManager connectionManager) {
+        this.connectionManager = connectionManager;
+    }
+
+    public String connectToCamera(String id, String ip, String user, String password){
+
+        try{
+            OnvifDevice device = new OnvifDevice(ip, user, password);
+            connectionManager.addCamera(id, device);
+            return "Conectado à câmera: " + id;
         } catch (ConnectException e) {
-            log.error("Error connecting to camera: " + e.getMessage());
-        } catch (Exception e) {
-            log.error("Error inesperado: " + e);
+            return "Falha ao conectar à câmera: " + e.getMessage();
+
+        }catch (Exception e) {
+            return "Falha ao conectar à câmera: " + e;
         }
     }
-    public void discoverCamera(){
-        try{
-            Collection<String> cameras = DeviceDiscovery.discoverWsDevices();
-            if(!cameras.isEmpty()){
-                log.info("Câmeras ONVIF encontradas: ");
-                cameras.forEach( log::info);
-            }else {
-                log.warn("Nenhuma câmera ONVIF encontrada");
-
-            }
-        }catch (Exception e){
-            log.error("Erro ao descobrir câmeras ONVIF: ", e);
+    public String disconnectCamera(String id) {
+        if (connectionManager.containsCamera(id)) {
+            connectionManager.removeCamera(id);
+            return "Câmera desconectada";
         }
+        return "Câmera não encontrada";
+    }
+    public String discoverCamera(String ip){
+        System.out.println("Descobrindo câmera em: " + ip);
+        return "Câmera descoberta com sucesso";
+    }
+    public boolean isCameraConnected(String id) {
+        return connectionManager.containsCamera(id);
     }
 }
+

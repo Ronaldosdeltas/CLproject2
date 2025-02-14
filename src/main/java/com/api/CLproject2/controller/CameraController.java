@@ -1,10 +1,7 @@
 package com.api.CLproject2.controller;
 
 import com.api.CLproject2.service.OnvifCameraService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/camera")
@@ -16,16 +13,23 @@ public class CameraController {
         this.CameraService = CameraService;
     }
 
-    @GetMapping("/discover")
-    public String discoverCamera() {
-        CameraService.discoverCamera();
-        return "Câmera ONVIF encontrada";
-    }
-
     @PostMapping("/connect")
-    public String connectToCamera(String ip, String user, String password) {
-        CameraService.connectToCamera(ip, user, password);
-        return "Conectado à câmera: ";
+    public String connectToCamera( @RequestParam String id, @RequestParam String ip,
+                                   @RequestParam String user, @RequestParam String password) {
+        return CameraService.connectToCamera(id, ip, user, password);
+
+    }
+    @PostMapping("/discover")
+    public String discoverCamera(@RequestParam String ip) {
+        return CameraService.discoverCamera(ip);
+    }
+    @PostMapping("/disconnect/{id}")
+    public String disconnectCamera(@PathVariable String id) {
+        return CameraService.disconnectCamera(id);
+    }
+    @GetMapping("/status/{id}")
+    public String checkCameraStatus(@PathVariable String id) {
+        return CameraService.isCameraConnected(id) ? "Câmera connectada" : "Câmera desconnectada";
     }
 }
 
