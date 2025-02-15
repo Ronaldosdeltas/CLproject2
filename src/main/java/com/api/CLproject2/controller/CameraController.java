@@ -27,6 +27,10 @@ public class CameraController {
     public String disconnectCamera(@PathVariable String id) {
         return CameraService.disconnectCamera(id);
     }
+    @PostMapping("ptz")
+    public String ptz(@RequestParam String id, @RequestParam String action) {
+        return CameraService.controlPTZ(id, action);
+    }
     @GetMapping("/status/{id}")
     public String checkCameraStatus(@PathVariable String id) {
         return CameraService.isCameraConnected(id) ? "Câmera connectada" : "Câmera desconnectada";
