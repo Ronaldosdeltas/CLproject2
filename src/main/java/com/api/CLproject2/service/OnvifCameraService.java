@@ -1,5 +1,6 @@
 package com.api.CLproject2.service;
 
+import com.api.CLproject2.dto.CameraRequest;
 import com.api.CLproject2.repository.CameraConnectionManager;
 import de.onvif.soap.OnvifDevice;
 import de.onvif.soap.devices.PtzDevices;
@@ -15,18 +16,35 @@ public class OnvifCameraService {
     public OnvifCameraService (CameraConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
     }
+        public String connectToCamera(CameraRequest request) {
+         String id = request.id();
+         String ip = request.ip();
+         String user = request.user();
+         String password = request.password();
 
-    public String connectToCamera(String id, String ip, String user, String password){
+            if (connectToCamera(id, ip,user, password)) {
+                return "Camera connected successfully";
+            } else {
+                return "Failed to connect to camera";
+            }
+        }
+
+    public boolean connectToCamera(String id, String ip, String user, String password){
 
         try{
+            System.out.println("Attempting to connect to camera with IP: " + ip);
+
             OnvifDevice device = new OnvifDevice(ip, user, password);
             connectionManager.addCamera(id, device);
-            return "Conectado à câmera: " + id;
-        } catch (ConnectException e) {
-            return "Falha ao conectar à câmera: " + e.getMessage();
+            System.out.println("Camera connected successfully with IP: " + ip);
 
+            return true;
+        } catch (ConnectException e) {
+            System.out.println("Failed to connect to camera " + e.getMessage());
+            return false;
         }catch (Exception e) {
-            return "Falha ao conectar à câmera: " + e;
+            System.out.println("Failed to connect to camera" + e);
+            return false;
         }
     }
     public String disconnectCamera(String id) {
@@ -46,38 +64,40 @@ public class OnvifCameraService {
     public String controlPTZ(String id, String action) {
         OnvifDevice device = connectionManager.getCamera(id);
         if (device == null) {
-            return "Câmera não encontrada";
+            return "Camera not found";
         }
         try {
             PtzDevices ptz = device.getPtz();
             if (ptz == null) {
-                return "Câmera não suporta PTZ";
+                return "Camera doesn't support PTZ";
             }
+
             switch (action.toLowerCase()) {
                 case "up":
-                    ptz.continuousMove(0, 1, 0);
+                    ptz.continuousMove("profileToken", 0f, 1f, 0f);
                     break;
                 case "down":
-                    device.ptzMoveDown();
+                    ptz.continuousMove("profileToken", 0f, -1f, 0f);
                     break;
                 case "left":
-                    device.ptzMoveLeft();
+                    ptz.continuousMove("profileToken", -1f, 0f, 0f);
                     break;
                 case "right":
-                    device.ptzMoveRight();
+                    ptz.continuousMove("profileToken", 1f, 0f, 0f);
                     break;
-                case "zoomIn":
-                    device.ptzZoomIn();
+                case "zoomin":
+                    ptz.continuousMove("profileToken", 0f, 0f, 1f);
                     break;
-                case "zoomOut":
-                    device.ptzZoomOut();
+                case "zoomout":
+                    ptz.continuousMove("profileToken", 0f, 0f, -1f);
+
                     break;
                 default:
-                    return "Ação inválida";
+                    return "Action invalid";
             }
-            return "Ação realizada com sucesso";
+            return "Action performed successfully";
         } catch (Exception e) {
-            return "Falha ao realizar ação: " + e.getMessage();
+            return "Failed to perform action: " + e.getMessage();
         }
     }
 }

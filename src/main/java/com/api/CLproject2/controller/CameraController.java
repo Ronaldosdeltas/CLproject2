@@ -1,5 +1,6 @@
 package com.api.CLproject2.controller;
 
+import com.api.CLproject2.dto.CameraRequest;
 import com.api.CLproject2.service.OnvifCameraService;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +15,8 @@ public class CameraController {
     }
 
     @PostMapping("/connect")
-    public String connectToCamera( @RequestParam String id, @RequestParam String ip,
-                                   @RequestParam String user, @RequestParam String password) {
-        return CameraService.connectToCamera(id, ip, user, password);
+    public String connectToCamera(@RequestBody CameraRequest request) {
+        return CameraService.connectToCamera(request);
 
     }
     @PostMapping("/discover")
